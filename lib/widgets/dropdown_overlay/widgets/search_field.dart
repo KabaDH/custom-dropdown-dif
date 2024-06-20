@@ -11,6 +11,7 @@ class _SearchField<T> extends StatefulWidget {
   final SearchFieldDecoration? decoration;
   final bool closeDropDownOnClearFilterSearch;
   final VoidCallback closeDropDown;
+  final bool autofocusOnSearchField;
 
   const _SearchField.forListData({
     super.key,
@@ -20,6 +21,7 @@ class _SearchField<T> extends StatefulWidget {
     required this.decoration,
     required this.closeDropDownOnClearFilterSearch,
     required this.closeDropDown,
+    this.autofocusOnSearchField = false,
   })  : searchType = _SearchType.onListData,
         futureRequest = null,
         futureRequestDelay = null,
@@ -38,6 +40,7 @@ class _SearchField<T> extends StatefulWidget {
     required this.decoration,
     required this.closeDropDownOnClearFilterSearch,
     required this.closeDropDown,
+    this.autofocusOnSearchField = false,
   }) : searchType = _SearchType.onRequestData;
 
   @override
@@ -109,6 +112,7 @@ class _SearchFieldState<T> extends State<_SearchField<T>> {
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: TextField(
         focusNode: focusNode,
+        autofocus: widget.autofocusOnSearchField,
         style: widget.decoration?.textStyle,
         onChanged: (val) async {
           if (val.isEmpty) {

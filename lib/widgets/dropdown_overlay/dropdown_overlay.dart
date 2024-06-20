@@ -39,6 +39,7 @@ class _DropdownOverlay<T> extends StatefulWidget {
   final _DropdownType dropdownType;
   final bool enabled;
   final bool closeDropDownOnClearFilterSearch;
+  final bool autofocusOnSearchField;
 
   const _DropdownOverlay({
     Key? key,
@@ -77,6 +78,7 @@ class _DropdownOverlay<T> extends StatefulWidget {
     required this.noResultFoundBuilder,
     required this.enabled,
     required this.closeDropDownOnClearFilterSearch,
+    this.autofocusOnSearchField = false,
   });
 
   @override
@@ -390,6 +392,8 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
                                       closeDropDownOnClearFilterSearch: widget
                                           .closeDropDownOnClearFilterSearch,
                                       closeDropDown: closeDropDown,
+                                      autofocusOnSearchField:
+                                          widget.autofocusOnSearchField,
                                     )
                                   else
                                     GestureDetector(
@@ -420,6 +424,8 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
                                                     widget
                                                         .closeDropDownOnClearFilterSearch,
                                                 closeDropDown: closeDropDown,
+                                                autofocusOnSearchField: widget
+                                                    .autofocusOnSearchField,
                                               ),
                                             ),
                                             decoration?.expandedSuffixIcon ??
@@ -454,6 +460,8 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
                                       closeDropDownOnClearFilterSearch: widget
                                           .closeDropDownOnClearFilterSearch,
                                       closeDropDown: closeDropDown,
+                                      autofocusOnSearchField:
+                                          widget.autofocusOnSearchField,
                                     )
                                   else
                                     GestureDetector(
@@ -497,6 +505,8 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
                                                     widget
                                                         .closeDropDownOnClearFilterSearch,
                                                 closeDropDown: closeDropDown,
+                                                autofocusOnSearchField: widget
+                                                    .autofocusOnSearchField,
                                               ),
                                             ),
                                             decoration?.expandedSuffixIcon ??

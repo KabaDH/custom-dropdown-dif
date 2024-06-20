@@ -155,6 +155,9 @@ class CustomDropdown<T> extends StatefulWidget {
   /// and searchRequest constructors
   final bool closeDropDownOnClearFilterSearch;
 
+  /// Focus in SearchField on open dropdown
+  final bool autofocusOnSearchField;
+
   final _SearchType? _searchType;
 
   final _DropdownType _dropdownType;
@@ -182,6 +185,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.excludeSelected = true,
     this.enabled = true,
     this.disabledDecoration,
+    this.autofocusOnSearchField = false,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -231,6 +235,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.enabled = true,
     this.disabledDecoration,
     this.closeDropDownOnClearFilterSearch = false,
+    this.autofocusOnSearchField = false,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -279,6 +284,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.enabled = true,
     this.disabledDecoration,
     this.closeDropDownOnClearFilterSearch = false,
+    this.autofocusOnSearchField = false,
   })  : _searchType = _SearchType.onRequestData,
         _dropdownType = _DropdownType.singleSelect,
         initialItems = null,
@@ -332,7 +338,9 @@ class CustomDropdown<T> extends StatefulWidget {
         noResultFoundBuilder = null,
         searchHintText = null,
         searchRequestLoadingIndicator = null,
-        closeDropDownOnClearFilterSearch = false;
+        closeDropDownOnClearFilterSearch = false,
+        autofocusOnSearchField = false
+  ;
 
   CustomDropdown.multiSelectSearch({
     super.key,
@@ -360,6 +368,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.enabled = true,
     this.disabledDecoration,
     this.closeDropDownOnClearFilterSearch = false,
+    this.autofocusOnSearchField = false,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -411,6 +420,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.enabled = true,
     this.disabledDecoration,
     this.closeDropDownOnClearFilterSearch = false,
+    this.autofocusOnSearchField = false,
   })  : _searchType = _SearchType.onRequestData,
         _dropdownType = _DropdownType.multipleSelect,
         initialItem = null,
@@ -546,6 +556,8 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                   enabled: widget.enabled,
                   closeDropDownOnClearFilterSearch:
                       widget.closeDropDownOnClearFilterSearch,
+                  autofocusOnSearchField: widget.autofocusOnSearchField,
+
                 );
               },
               child: (showCallback) {
