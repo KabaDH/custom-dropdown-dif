@@ -162,6 +162,8 @@ class CustomDropdown<T> extends StatefulWidget {
 
   final _DropdownType _dropdownType;
 
+  final bool canOpenOverlayTopSide;
+
   CustomDropdown({
     super.key,
     required this.items,
@@ -186,6 +188,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.enabled = true,
     this.disabledDecoration,
     this.autofocusOnSearchField = false,
+    this.canOpenOverlayTopSide = true,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -236,6 +239,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.disabledDecoration,
     this.closeDropDownOnClearFilterSearch = false,
     this.autofocusOnSearchField = false,
+    this.canOpenOverlayTopSide = true,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -285,6 +289,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.disabledDecoration,
     this.closeDropDownOnClearFilterSearch = false,
     this.autofocusOnSearchField = false,
+    this.canOpenOverlayTopSide = true,
   })  : _searchType = _SearchType.onRequestData,
         _dropdownType = _DropdownType.singleSelect,
         initialItems = null,
@@ -314,6 +319,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.listItemPadding,
     this.enabled = true,
     this.disabledDecoration,
+    this.canOpenOverlayTopSide = true,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -369,6 +375,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.disabledDecoration,
     this.closeDropDownOnClearFilterSearch = false,
     this.autofocusOnSearchField = false,
+    this.canOpenOverlayTopSide = true,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -421,6 +428,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.disabledDecoration,
     this.closeDropDownOnClearFilterSearch = false,
     this.autofocusOnSearchField = false,
+    this.canOpenOverlayTopSide = true,
   })  : _searchType = _SearchType.onRequestData,
         _dropdownType = _DropdownType.multipleSelect,
         initialItem = null,
@@ -557,6 +565,7 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                   closeDropDownOnClearFilterSearch:
                       widget.closeDropDownOnClearFilterSearch,
                   autofocusOnSearchField: widget.autofocusOnSearchField,
+                  canOpenOverlayTopSide: widget.canOpenOverlayTopSide,
 
                 );
               },

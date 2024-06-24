@@ -40,6 +40,7 @@ class _DropdownOverlay<T> extends StatefulWidget {
   final bool enabled;
   final bool closeDropDownOnClearFilterSearch;
   final bool autofocusOnSearchField;
+  final bool canOpenOverlayTopSide;
 
   const _DropdownOverlay({
     Key? key,
@@ -79,6 +80,7 @@ class _DropdownOverlay<T> extends StatefulWidget {
     required this.enabled,
     required this.closeDropDownOnClearFilterSearch,
     this.autofocusOnSearchField = false,
+    this.canOpenOverlayTopSide = true,
   });
 
   @override
@@ -202,7 +204,8 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
       final render2 = key2.currentContext?.findRenderObject() as RenderBox;
       final screenHeight = MediaQuery.of(context).size.height;
       double y = render1.localToGlobal(Offset.zero).dy;
-      if (screenHeight - y < render2.size.height) {
+      if (screenHeight - y < render2.size.height &&
+          widget.canOpenOverlayTopSide) {
         displayOverlayBottom = false;
         setState(() {});
       }
