@@ -1,3 +1,5 @@
+## !!! This repository is a separate fork of https://github.com/AbdullahChauhan/custom-dropdown, dedicated to experimenting with some features.
+
 # Custom Dropdown
 
 **Custom Dropdown** package lets you add customizable animated dropdown widget.
