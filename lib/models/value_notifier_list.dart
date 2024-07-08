@@ -8,6 +8,10 @@ class _ValueNotifierList<T> extends ValueNotifier<List<T>> {
   }
 
   void remove(T valueToRemove) {
-    value = value.where((value) => value != valueToRemove).toList();
+    value = value.where((value) {
+      return value is Groupable &&
+          valueToRemove is Groupable &&
+          value.id != valueToRemove.id;
+    }).toList();
   }
 }

@@ -1,8 +1,9 @@
 library animated_custom_dropdown;
 
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+
+import 'models/groupable.dart';
 
 export 'custom_dropdown.dart';
 
@@ -164,6 +165,8 @@ class CustomDropdown<T> extends StatefulWidget {
 
   final bool canOpenOverlayTopSide;
 
+  final Function(List<T>, bool)? onMultipleSelectionClose;
+
   CustomDropdown({
     super.key,
     required this.items,
@@ -209,7 +212,8 @@ class CustomDropdown<T> extends StatefulWidget {
         listValidator = null,
         headerListBuilder = null,
         searchRequestLoadingIndicator = null,
-        closeDropDownOnClearFilterSearch = false;
+        closeDropDownOnClearFilterSearch = false,
+        onMultipleSelectionClose = null;
 
   CustomDropdown.search({
     super.key,
@@ -256,8 +260,8 @@ class CustomDropdown<T> extends StatefulWidget {
         onListChanged = null,
         listValidator = null,
         headerListBuilder = null,
-        searchRequestLoadingIndicator = null;
-
+        searchRequestLoadingIndicator = null,
+        onMultipleSelectionClose = null;
   const CustomDropdown.searchRequest({
     super.key,
     required this.futureRequest,
@@ -295,12 +299,13 @@ class CustomDropdown<T> extends StatefulWidget {
         initialItems = null,
         onListChanged = null,
         listValidator = null,
-        headerListBuilder = null;
-
+        headerListBuilder = null,
+        onMultipleSelectionClose = null;
   CustomDropdown.multiSelect({
     super.key,
     required this.items,
     required this.onListChanged,
+    this.onMultipleSelectionClose,
     this.initialItems,
     this.listValidator,
     this.headerListBuilder,
@@ -345,13 +350,13 @@ class CustomDropdown<T> extends StatefulWidget {
         searchHintText = null,
         searchRequestLoadingIndicator = null,
         closeDropDownOnClearFilterSearch = false,
-        autofocusOnSearchField = false
-  ;
+        autofocusOnSearchField = false;
 
   CustomDropdown.multiSelectSearch({
     super.key,
     required this.items,
     required this.onListChanged,
+    this.onMultipleSelectionClose,
     this.initialItems,
     this.listValidator,
     this.listItemBuilder,
@@ -402,6 +407,7 @@ class CustomDropdown<T> extends StatefulWidget {
     super.key,
     required this.futureRequest,
     required this.onListChanged,
+    this.onMultipleSelectionClose,
     this.futureRequestDelay,
     this.initialItems,
     this.items,
@@ -478,7 +484,6 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
     final decoration =
         widget.enabled ? widget.decoration : widget.disabledDecoration;
     final safeHintText = widget.hintText ?? 'Select value';
-
     return IgnorePointer(
       ignoring: !widget.enabled,
       child: FormField<(T?, List<T>)>(
@@ -512,19 +517,17 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                         widget.onChanged?.call(value);
                         formFieldState.didChange((value, []));
                       case _DropdownType.multipleSelect:
-                        final currentVal = selectedItemsNotifier.value.toList();
-                        if (currentVal.contains(value)) {
-                          currentVal.remove(value);
-                        } else {
-                          currentVal.add(value);
-                        }
-                        selectedItemsNotifier.value = currentVal;
-                        widget.onListChanged?.call(currentVal);
-                        formFieldState.didChange((null, currentVal));
+                        _handleItemSelection(value);
+                        formFieldState
+                            .didChange((null, selectedItemsNotifier.value));
+                        widget.onListChanged?.call(selectedItemsNotifier.value);
                     }
                     if (widget.validateOnChange) {
                       formFieldState.validate();
                     }
+                  },
+                  onMultipleSelectionClose: (List<T> value, bool isClosed) {
+                    widget.onMultipleSelectionClose?.call(value, isClosed);
                   },
                   noResultFoundText:
                       widget.noResultFoundText ?? 'No result found.',
@@ -566,7 +569,6 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                       widget.closeDropDownOnClearFilterSearch,
                   autofocusOnSearchField: widget.autofocusOnSearchField,
                   canOpenOverlayTopSide: widget.canOpenOverlayTopSide,
-
                 );
               },
               child: (showCallback) {
@@ -603,5 +605,77 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
         },
       ),
     );
+  }
+
+  // Логика для мультивыбора
+  void _handleItemSelection(T value) {
+    // Текущий список выбранных элементов
+    var currentValue = selectedItemsNotifier.value.toList();
+    final ids = (currentValue as List<Groupable>)
+        .map((toElement) => toElement.id)
+        .toList();
+    // Если кликнули по группе
+    if (value is Group) {
+      // Если группа убирается, то все элементы в этой группе тоже
+      if (currentValue.contains(value)) {
+        final groupItems = _getItemsForGroup(value) as List<Groupable>;
+        currentValue.removeWhere((element) => groupItems.contains(element));
+        currentValue.remove(value);
+      } else {
+        currentValue = [
+          ...currentValue,
+          value,
+          ..._getItemsForGroup(value),
+        ];
+      }
+      // Если кликнули по элементу
+    } else if (value is Item) {
+      final groupId = value.groupId;
+      if (ids.contains(value.id)) {
+        currentValue.remove(value);
+        // Если является частью группы, то проверяем состояние выбранности группы
+        if (_isGroupSelected(groupId)) {
+          // Если во время клика убираем элемент и это делает группу неполной, то
+          // убираем и группу тоже
+          currentValue.remove(_getGroupById(groupId));
+        }
+      } else {
+        currentValue.add(value);
+        // Если во время клика добавляем элемент и это делает группу полной, то
+        // добавляем и саму группу
+        if (_isGroupComplete(groupId, currentValue)) {
+          final group = _getGroupById(groupId);
+          if (group != null) {
+            currentValue.add(group as T);
+          }
+        }
+      }
+    }
+    selectedItemsNotifier.value = currentValue;
+  }
+
+  // Все элементы в группе
+  List<T> _getItemsForGroup(Group group) {
+    return (widget.items ?? [])
+        .where((item) => item is Item && item.groupId == group.id)
+        .toList();
+  }
+
+  // Группа по id
+  Group? _getGroupById(int groupId) {
+    return widget.items
+        ?.firstWhere((item) => item is Group && item.id == groupId) as Group?;
+  }
+
+  // Выбрана ли группа?
+  bool _isGroupSelected(int groupId) {
+    return selectedItemsNotifier.value
+        .any((item) => item is Group && item.id == groupId);
+  }
+
+  // Все ли элементы в группе выбраны?
+  bool _isGroupComplete(int groupId, List<T> currentVal) {
+    final groupItems = _getItemsForGroup(_getGroupById(groupId)!);
+    return groupItems.every((item) => currentVal.contains(item));
   }
 }
