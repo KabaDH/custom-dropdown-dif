@@ -1,5 +1,4 @@
-import 'package:animated_custom_dropdown/custom_dropdown.dart';
-
+part of '../custom_dropdown.dart';
 /// Базовый класс для объектов группировки (паттерн Composite).
 ///
 /// Примешивание `CustomDropdownListFilter` позволяет использовать фильтрацию

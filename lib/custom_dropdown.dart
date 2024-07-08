@@ -3,8 +3,6 @@ library animated_custom_dropdown;
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-import 'models/groupable.dart';
-
 export 'custom_dropdown.dart';
 
 // models
@@ -13,6 +11,7 @@ part 'models/custom_dropdown_list_filter.dart';
 part 'models/list_item_decoration.dart';
 part 'models/search_field_decoration.dart';
 part 'models/value_notifier_list.dart';
+part 'models/groupable.dart';
 // utils
 part 'utils/signatures.dart';
 // widgets
