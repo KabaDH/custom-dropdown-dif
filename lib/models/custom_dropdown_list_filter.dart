@@ -6,3 +6,7 @@ mixin CustomDropdownListFilter {
   /// [CustomDropdown<T>.multiSelect] or [CustomDropdown<T>.multiSelectSearchRequest]
   bool filter(String query);
 }
+
+mixin CustomDropdownGroupable<T> {
+  final List<T> children = [];
+}

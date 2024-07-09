@@ -134,7 +134,13 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
             result.toString(),
             maxLines: widget.maxLines,
             overflow: TextOverflow.ellipsis,
-            style: widget.listItemStyle ?? const TextStyle(fontSize: 16),
+            style: widget.listItemStyle ??
+                TextStyle(
+                    fontSize: 16,
+                    fontWeight: (result is CustomDropdownGroupable &&
+                            result.children.isNotEmpty)
+                        ? FontWeight.w900
+                        : FontWeight.w400),
           ),
         ),
         if (widget.dropdownType == _DropdownType.multipleSelect)
@@ -159,8 +165,16 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
   }
 
   Widget defaultHeaderBuilder(BuildContext context, {T? item, List<T>? items}) {
+    final itemsToBuild = <T>[];
+    if ((items ?? []).isNotEmpty) {
+      for (final e in items!) {
+        if (e is CustomDropdownGroupable) {
+          if (e.children.isEmpty) itemsToBuild.add(e);
+        }
+      }
+    }
     return Text(
-      items != null ? items.join(', ') : item.toString(),
+      itemsToBuild.isNotEmpty ? itemsToBuild.join(', ') : item.toString(),
       maxLines: widget.maxLines,
       overflow: TextOverflow.ellipsis,
       style: widget.headerStyle ??
@@ -233,6 +247,61 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
   void onItemSelect(T value) {
     widget.onItemSelect(value);
     if (widget.dropdownType == _DropdownType.multipleSelect) {
+      // We got grouped items
+      if (value is CustomDropdownGroupable<T>) {
+        // Click on group
+        if (value.children.isNotEmpty) {
+          if (selectedItems.contains(value as T)) {
+            selectedItems.remove(value as T);
+            for (final child in value.children) {
+              selectedItems.remove(child);
+              widget.onItemSelect(child);
+            }
+          } else {
+            selectedItems.add(value as T);
+            for (final child in value.children) {
+              if (!selectedItems.contains(child)) {
+                selectedItems.add(child);
+                widget.onItemSelect(child);
+              }
+            }
+          }
+        } else {
+          if (selectedItems.contains(value as T)) {
+            selectedItems.remove(value as T);
+          } else {
+            selectedItems.add(value as T);
+          }
+          CustomDropdownGroupable<T>? group;
+          for (final e in items) {
+            final itemWithChildren = e as CustomDropdownGroupable<T>;
+            for (final child in itemWithChildren.children) {
+              if (child == value) {
+                group = e;
+                break;
+              }
+            }
+          }
+          // Click on Item inside the group
+          if (group != null) {
+            // TODO(ivn): Can do better seek
+            if (group.children.every((e) => selectedItems.contains(e))) {
+              if (!selectedItems.contains(group as T)) {
+                selectedItems.add(group as T);
+                widget.onItemSelect(group as T);
+              }
+            } else {
+              if (selectedItems.contains(group as T)) {
+                widget.onItemSelect(group as T);
+              }
+              selectedItems.remove(group as T);
+            }
+          }
+        }
+        setState(() {});
+        return;
+      }
+      // We got items without group
       if (selectedItems.contains(value)) {
         selectedItems.remove(value);
       } else {
@@ -240,6 +309,12 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
       }
       setState(() {});
       return;
+    }
+    // We got grouped items
+    if (selectedItems.contains(value)) {
+      selectedItems.remove(value);
+    } else {
+      selectedItems.add(value);
     }
     setState(() => displayOverly = false);
   }
