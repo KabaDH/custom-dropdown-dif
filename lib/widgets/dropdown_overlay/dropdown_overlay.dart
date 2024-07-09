@@ -170,6 +170,8 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
       for (final e in items!) {
         if (e is CustomDropdownGroupable) {
           if (e.children.isEmpty) itemsToBuild.add(e);
+        } else {
+          itemsToBuild.add(e);
         }
       }
     }
@@ -301,7 +303,7 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
         setState(() {});
         return;
       }
-      // We got items without group
+      // We got groupable items without group
       if (selectedItems.contains(value)) {
         selectedItems.remove(value);
       } else {
@@ -310,7 +312,7 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
       setState(() {});
       return;
     }
-    // We got grouped items
+    // We got non-groupable items
     if (selectedItems.contains(value)) {
       selectedItems.remove(value);
     } else {
