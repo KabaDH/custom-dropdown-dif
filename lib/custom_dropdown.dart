@@ -164,6 +164,12 @@ class CustomDropdown<T> extends StatefulWidget {
 
   final bool canOpenOverlayTopSide;
 
+  /// One time call after closing the dropdown
+  final void Function(T? item)? onItemSelectionComplete;
+
+  /// One time call after closing the dropdown
+  final void Function(List<T> items)? onListSelectionComplete;
+
   CustomDropdown({
     super.key,
     required this.items,
@@ -189,6 +195,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.disabledDecoration,
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
+    this.onItemSelectionComplete,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -209,7 +216,8 @@ class CustomDropdown<T> extends StatefulWidget {
         listValidator = null,
         headerListBuilder = null,
         searchRequestLoadingIndicator = null,
-        closeDropDownOnClearFilterSearch = false;
+        closeDropDownOnClearFilterSearch = false,
+        onListSelectionComplete = null;
 
   CustomDropdown.search({
     super.key,
@@ -240,6 +248,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.closeDropDownOnClearFilterSearch = false,
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
+    this.onItemSelectionComplete,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -256,7 +265,8 @@ class CustomDropdown<T> extends StatefulWidget {
         onListChanged = null,
         listValidator = null,
         headerListBuilder = null,
-        searchRequestLoadingIndicator = null;
+        searchRequestLoadingIndicator = null,
+        onListSelectionComplete = null;
 
   const CustomDropdown.searchRequest({
     super.key,
@@ -290,12 +300,14 @@ class CustomDropdown<T> extends StatefulWidget {
     this.closeDropDownOnClearFilterSearch = false,
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
+    this.onItemSelectionComplete,
   })  : _searchType = _SearchType.onRequestData,
         _dropdownType = _DropdownType.singleSelect,
         initialItems = null,
         onListChanged = null,
         listValidator = null,
-        headerListBuilder = null;
+        headerListBuilder = null,
+        onListSelectionComplete = null;
 
   CustomDropdown.multiSelect({
     super.key,
@@ -320,6 +332,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.enabled = true,
     this.disabledDecoration,
     this.canOpenOverlayTopSide = true,
+    this.onListSelectionComplete,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -345,8 +358,8 @@ class CustomDropdown<T> extends StatefulWidget {
         searchHintText = null,
         searchRequestLoadingIndicator = null,
         closeDropDownOnClearFilterSearch = false,
-        autofocusOnSearchField = false
-  ;
+        autofocusOnSearchField = false,
+        onItemSelectionComplete = null;
 
   CustomDropdown.multiSelectSearch({
     super.key,
@@ -376,6 +389,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.closeDropDownOnClearFilterSearch = false,
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
+    this.onListSelectionComplete,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -396,7 +410,8 @@ class CustomDropdown<T> extends StatefulWidget {
         headerBuilder = null,
         futureRequest = null,
         futureRequestDelay = null,
-        searchRequestLoadingIndicator = null;
+        searchRequestLoadingIndicator = null,
+        onItemSelectionComplete = null;
 
   const CustomDropdown.multiSelectSearchRequest({
     super.key,
@@ -429,13 +444,15 @@ class CustomDropdown<T> extends StatefulWidget {
     this.closeDropDownOnClearFilterSearch = false,
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
+    this.onListSelectionComplete,
   })  : _searchType = _SearchType.onRequestData,
         _dropdownType = _DropdownType.multipleSelect,
         initialItem = null,
         onChanged = null,
         headerBuilder = null,
         excludeSelected = false,
-        validator = null;
+        validator = null,
+        onItemSelectionComplete = null;
 
   @override
   State<CustomDropdown<T>> createState() => _CustomDropdownState<T>();
@@ -535,7 +552,13 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                   size: size,
                   listItemBuilder: widget.listItemBuilder,
                   layerLink: layerLink,
-                  hideOverlay: hideCallback,
+                  hideOverlay: () {
+                    hideCallback();
+                    widget.onItemSelectionComplete
+                        ?.call(selectedItemNotifier.value);
+                    widget.onListSelectionComplete
+                        ?.call(selectedItemsNotifier.value);
+                  },
                   hintStyle: decoration?.hintStyle,
                   headerStyle: decoration?.headerStyle,
                   noResultFoundStyle: decoration?.noResultFoundStyle,
@@ -566,7 +589,6 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                       widget.closeDropDownOnClearFilterSearch,
                   autofocusOnSearchField: widget.autofocusOnSearchField,
                   canOpenOverlayTopSide: widget.canOpenOverlayTopSide,
-
                 );
               },
               child: (showCallback) {
