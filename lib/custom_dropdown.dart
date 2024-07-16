@@ -543,6 +543,11 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                       formFieldState.validate();
                     }
                   },
+                  resetSelection: () {
+                    selectedItemsNotifier.value = [];
+                    widget.onListChanged?.call([]);
+                    formFieldState.didChange((null, []));
+                  },
                   noResultFoundText:
                       widget.noResultFoundText ?? 'No result found.',
                   noResultFoundBuilder: widget.noResultFoundBuilder,
@@ -597,6 +602,9 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                   child: _DropDownField<T>(
                     onTap: showCallback,
                     selectedItemNotifier: selectedItemNotifier,
+                    resetSelection: () {
+                      selectedItemsNotifier.value = [];
+                    },
                     border: formFieldState.hasError
                         ? (decoration?.closedErrorBorder ?? _defaultErrorBorder)
                         : decoration?.closedBorder,
