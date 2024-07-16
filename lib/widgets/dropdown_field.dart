@@ -26,6 +26,7 @@ class _DropDownField<T> extends StatefulWidget {
   final _DropdownType dropdownType;
   final _ValueNotifierList<T> selectedItemsNotifier;
   final bool enabled;
+  final VoidCallback resetSelection;
 
   const _DropDownField({
     super.key,
@@ -34,6 +35,7 @@ class _DropDownField<T> extends StatefulWidget {
     required this.maxLines,
     required this.dropdownType,
     required this.selectedItemsNotifier,
+    required this.resetSelection,
     this.hintText = 'Select value',
     this.fillColor,
     this.border,
@@ -67,6 +69,13 @@ class _DropDownFieldState<T> extends State<_DropDownField<T>> {
     selectedItems = widget.selectedItemsNotifier.value;
   }
 
+  void resetSelection() {
+    widget.resetSelection();
+    selectedItem = null;
+    selectedItems = [];
+    setState(() {});
+  }
+
   Widget hintBuilder(BuildContext context) {
     return widget.hintBuilder != null
         ? widget.hintBuilder!(context, widget.hintText, widget.enabled)
@@ -81,20 +90,37 @@ class _DropDownFieldState<T> extends State<_DropDownField<T>> {
 
   Widget headerListBuilder(BuildContext context) {
     return widget.headerListBuilder != null
-        ? widget.headerListBuilder!(context, selectedItems, widget.enabled)
-        : defaultHeaderBuilder(itemList: selectedItems);
+        ? widget.headerListBuilder!(
+            context, selectedItems, widget.enabled, resetSelection)
+        : defaultHeaderBuilder(
+            itemList: selectedItems, resetSelection: resetSelection);
   }
 
-  Widget defaultHeaderBuilder({T? oneItem, List<T>? itemList}) {
-    return Text(
-      itemList != null ? itemList.join(', ') : oneItem.toString(),
-      maxLines: widget.maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: widget.headerStyle ??
-          const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+  Widget defaultHeaderBuilder(
+      {T? oneItem, List<T>? itemList, VoidCallback? resetSelection}) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            itemList != null ? itemList.join(', ') : oneItem.toString(),
+            maxLines: widget.maxLines,
+            overflow: TextOverflow.ellipsis,
+            style: widget.headerStyle ??
+                const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
           ),
+        ),
+        if (resetSelection != null)
+          GestureDetector(
+            onTap: resetSelection,
+            child: const Icon(
+              Icons.close,
+              size: 20,
+            ),
+          ),
+      ],
     );
   }
 

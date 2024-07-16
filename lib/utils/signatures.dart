@@ -15,6 +15,7 @@ typedef _HeaderListBuilder<T> = Widget Function(
   BuildContext context,
   List<T> selectedItems,
   bool enabled,
+  VoidCallback? resetSelection,
 );
 typedef _HintBuilder = Widget Function(
   BuildContext context,

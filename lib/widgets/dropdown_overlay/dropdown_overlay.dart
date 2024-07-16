@@ -41,6 +41,7 @@ class _DropdownOverlay<T> extends StatefulWidget {
   final bool closeDropDownOnClearFilterSearch;
   final bool autofocusOnSearchField;
   final bool canOpenOverlayTopSide;
+  final VoidCallback resetSelection;
 
   const _DropdownOverlay({
     Key? key,
@@ -79,6 +80,7 @@ class _DropdownOverlay<T> extends StatefulWidget {
     required this.noResultFoundBuilder,
     required this.enabled,
     required this.closeDropDownOnClearFilterSearch,
+    required this.resetSelection,
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
   });
@@ -97,6 +99,13 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
   final key1 = GlobalKey(), key2 = GlobalKey();
   final scrollController = ScrollController();
 
+  void resetSelection() {
+    selectedItem = null;
+    selectedItems = [];
+    widget.resetSelection();
+    setState(() {});
+  }
+
   Widget hintBuilder(BuildContext context) {
     return widget.hintBuilder != null
         ? widget.hintBuilder!(context, widget.hintText, widget.enabled)
@@ -111,8 +120,10 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
 
   Widget headerListBuilder(BuildContext context) {
     return widget.headerListBuilder != null
-        ? widget.headerListBuilder!(context, selectedItems, widget.enabled)
-        : defaultHeaderBuilder(context, items: selectedItems);
+        ? widget.headerListBuilder!(
+            context, selectedItems, widget.enabled, resetSelection)
+        : defaultHeaderBuilder(context,
+            items: selectedItems, resetSelection: resetSelection);
   }
 
   Widget noResultFoundBuilder(BuildContext context) {
@@ -164,7 +175,8 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
     );
   }
 
-  Widget defaultHeaderBuilder(BuildContext context, {T? item, List<T>? items}) {
+  Widget defaultHeaderBuilder(BuildContext context,
+      {T? item, List<T>? items, VoidCallback? resetSelection}) {
     final itemsToBuild = <T>[];
     if ((items ?? []).isNotEmpty) {
       for (final e in items!) {
@@ -175,15 +187,29 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
         }
       }
     }
-    return Text(
-      itemsToBuild.isNotEmpty ? itemsToBuild.join(', ') : item.toString(),
-      maxLines: widget.maxLines,
-      overflow: TextOverflow.ellipsis,
-      style: widget.headerStyle ??
-          const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            itemsToBuild.isNotEmpty ? itemsToBuild.join(', ') : item.toString(),
+            maxLines: widget.maxLines,
+            overflow: TextOverflow.ellipsis,
+            style: widget.headerStyle ??
+                const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
           ),
+        ),
+        if (resetSelection != null)
+          GestureDetector(
+            onTap: resetSelection,
+            child: const Icon(
+              Icons.close,
+              size: 20,
+            ),
+          ),
+      ],
     );
   }
 
