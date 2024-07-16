@@ -41,3 +41,25 @@ class MultiSelectGroupedDropdown extends StatelessWidget {
     );
   }
 }
+
+/// Selection dropdown with categories and a Search field
+///
+/// You must provide the same instance of the Item both to the Item in the list,
+/// and to the Item in the category. See an example in [GeoElement].
+class MultiSelectGroupedDropdownSearch extends StatelessWidget {
+  const MultiSelectGroupedDropdownSearch({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomDropdown<GeoElement>.multiSelectSearch(
+      items: groupedCities,
+      autofocusOnSearchField: true,
+      onListChanged: (value) {
+        log('MultiSelectGroupedDropdownSearch onChanged value: $value');
+      },
+      onListSelectionComplete: (items) {
+        log('MultiSelectGroupedDropdownSearch onListSelectionComplete value: $items');
+      },
+    );
+  }
+}

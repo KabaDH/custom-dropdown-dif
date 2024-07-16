@@ -56,8 +56,8 @@ class _SearchFieldState<T> extends State<_SearchField<T>> {
   @override
   void initState() {
     super.initState();
-    if (widget.searchType == _SearchType.onRequestData &&
-        widget.items.isEmpty) {
+    if ((widget.searchType == _SearchType.onRequestData &&
+        widget.items.isEmpty) || widget.autofocusOnSearchField) {
       focusNode.requestFocus();
     }
   }
@@ -112,7 +112,6 @@ class _SearchFieldState<T> extends State<_SearchField<T>> {
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: TextField(
         focusNode: focusNode,
-        autofocus: widget.autofocusOnSearchField,
         style: widget.decoration?.textStyle,
         onChanged: (val) async {
           if (val.isEmpty) {
