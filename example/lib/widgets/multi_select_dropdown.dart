@@ -35,6 +35,9 @@ class MultiSelectGroupedDropdown extends StatelessWidget {
       onListChanged: (value) {
         log('MultiSelectGroupedDropdown onChanged value: $value');
       },
+      onListSelectionComplete: (items) {
+        log('MultiSelectGroupedDropdown onListSelectionComplete value: $items');
+      },
     );
   }
 }
