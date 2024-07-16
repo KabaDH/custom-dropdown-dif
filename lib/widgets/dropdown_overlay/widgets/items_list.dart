@@ -1,6 +1,6 @@
 part of '../../../custom_dropdown.dart';
 
-class _ItemsList<T> extends StatelessWidget {
+class _ItemsList<T> extends StatefulWidget {
   final ScrollController scrollController;
   final T? selectedItem;
   final List<T> items, selectedItems;
@@ -27,39 +27,76 @@ class _ItemsList<T> extends StatelessWidget {
   });
 
   @override
+  State<_ItemsList<T>> createState() => _ItemsListState<T>();
+}
+
+class _ItemsListState<T> extends State<_ItemsList<T>> {
+  double lastScrollOffset = 0;
+  final focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.scrollController.addListener(onScrollChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.scrollController.removeListener(onScrollChanged);
+    super.dispose();
+  }
+
+  void onScrollChanged() {
+    final sc = widget.scrollController;
+    if (sc.hasClients &&
+        sc.positions.isNotEmpty &&
+        sc.offset != lastScrollOffset) {
+      FocusScope.of(context).requestFocus(focusNode);
+      lastScrollOffset = sc.offset;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scrollbar(
-      controller: scrollController,
+      controller: widget.scrollController,
       child: ListView.builder(
-        controller: scrollController,
+        controller: widget.scrollController,
         shrinkWrap: true,
-        padding: itemsListPadding,
-        itemCount: items.length,
+        padding: widget.itemsListPadding,
+        itemCount: widget.items.length,
         itemBuilder: (_, index) {
-          final selected = switch (dropdownType) {
-            _DropdownType.singleSelect =>
-              !excludeSelected && selectedItem == items[index],
-            _DropdownType.multipleSelect => selectedItems.contains(items[index])
+          final selected = switch (widget.dropdownType) {
+            _DropdownType.singleSelect => !widget.excludeSelected &&
+                widget.selectedItem == widget.items[index],
+            _DropdownType.multipleSelect =>
+              widget.selectedItems.contains(widget.items[index])
           };
           return Material(
             color: Colors.transparent,
             child: InkWell(
-              splashColor: decoration?.splashColor ??
+              splashColor: widget.decoration?.splashColor ??
                   ListItemDecoration._defaultSplashColor,
-              highlightColor: decoration?.highlightColor ??
+              highlightColor: widget.decoration?.highlightColor ??
                   ListItemDecoration._defaultHighlightColor,
-              onTap: () => onItemSelect(items[index]),
+              onTap: () {
+                FocusScope.of(context).requestFocus(focusNode);
+                widget.onItemSelect(widget.items[index]);
+              },
               child: Ink(
                 color: selected
-                    ? (decoration?.selectedColor ??
+                    ? (widget.decoration?.selectedColor ??
                         ListItemDecoration._defaultSelectedColor)
                     : Colors.transparent,
-                padding: listItemPadding,
-                child: listItemBuilder(
+                padding: widget.listItemPadding,
+                child: widget.listItemBuilder(
                   context,
-                  items[index],
+                  widget.items[index],
                   selected,
-                  () => onItemSelect(items[index]),
+                  () {
+                    FocusScope.of(context).requestFocus(FocusNode());
+                    widget.onItemSelect(widget.items[index]);
+                  },
                 ),
               ),
             ),

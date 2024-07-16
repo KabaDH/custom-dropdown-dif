@@ -100,7 +100,9 @@ class _HomeState extends State<Home> {
                 const SizedBox(height: 16),
                 MultiSelectValidationDropdown(),
                 const SizedBox(height: 16),
-                const MultiSelectGroupedDropdown()
+                const MultiSelectGroupedDropdown(),
+                const SizedBox(height: 16),
+                const MultiSelectGroupedDropdownSearch(),
               ],
             ),
           ],
