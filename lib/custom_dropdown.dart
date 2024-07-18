@@ -2,6 +2,7 @@ library animated_custom_dropdown;
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 export 'custom_dropdown.dart';
@@ -467,7 +468,40 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
   void initState() {
     super.initState();
     selectedItemNotifier = ValueNotifier(widget.initialItem);
-    selectedItemsNotifier = _ValueNotifierList(widget.initialItems ?? []);
+    selectedItemsNotifier = _ValueNotifierList(_processHeaders());
+  }
+
+  List<T> _processHeaders() {
+    final res = widget.initialItems ?? [];
+    final allItems = widget.items ?? [];
+    if (res.isEmpty || !res.every((e) => e is CustomDropdownGroupable<T>) ) return res;
+    final resWithGroups = <T>[];
+    final groups = <CustomDropdownGroupable<T>>[];
+    for (final e in res ) {
+      // proceed elements
+      if ((e as CustomDropdownGroupable<T>).children.isEmpty && allItems.contains(e)){
+        resWithGroups.add(e);
+        CustomDropdownGroupable<T>? group;
+        for (final el in allItems) {
+          final itemWithChildren = el as CustomDropdownGroupable<T>;
+          for (final child in itemWithChildren.children) {
+            if (child == e) {
+              group = el;
+              break;
+            }
+          }
+        }
+        if (group != null && !groups.contains(group)) groups.add(group);
+        continue;
+      }
+    }
+    // proseed headers
+    for (final group in groups) {
+      if (group.children.every((e) => resWithGroups.contains(e))) {
+        resWithGroups.add(group as T);
+      }
+    }
+    return resWithGroups;
   }
 
   @override
@@ -478,8 +512,8 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
       selectedItemNotifier = ValueNotifier(widget.initialItem);
     }
 
-    if (widget.initialItems != oldWidget.initialItems) {
-      selectedItemsNotifier = _ValueNotifierList(widget.initialItems ?? []);
+    if (!listEquals(widget.initialItems, oldWidget.initialItems)) {
+      selectedItemsNotifier.value = _processHeaders();
     }
   }
 
