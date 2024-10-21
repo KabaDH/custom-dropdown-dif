@@ -171,6 +171,10 @@ class CustomDropdown<T> extends StatefulWidget {
   /// One time call after closing the dropdown
   final void Function(List<T> items)? onListSelectionComplete;
 
+  final bool withApplyButton;
+
+  final _ApplyButtonBuilder? applyButtonBuilder;
+
   CustomDropdown({
     super.key,
     required this.items,
@@ -197,6 +201,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
     this.onItemSelectionComplete,
+    this.withApplyButton = false,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -218,7 +223,8 @@ class CustomDropdown<T> extends StatefulWidget {
         headerListBuilder = null,
         searchRequestLoadingIndicator = null,
         closeDropDownOnClearFilterSearch = false,
-        onListSelectionComplete = null;
+        onListSelectionComplete = null,
+        applyButtonBuilder = null;
 
   CustomDropdown.search({
     super.key,
@@ -250,6 +256,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
     this.onItemSelectionComplete,
+    this.withApplyButton = false,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -267,7 +274,8 @@ class CustomDropdown<T> extends StatefulWidget {
         listValidator = null,
         headerListBuilder = null,
         searchRequestLoadingIndicator = null,
-        onListSelectionComplete = null;
+        onListSelectionComplete = null,
+        applyButtonBuilder = null;
 
   const CustomDropdown.searchRequest({
     super.key,
@@ -302,13 +310,15 @@ class CustomDropdown<T> extends StatefulWidget {
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
     this.onItemSelectionComplete,
+    this.withApplyButton = false,
   })  : _searchType = _SearchType.onRequestData,
         _dropdownType = _DropdownType.singleSelect,
         initialItems = null,
         onListChanged = null,
         listValidator = null,
         headerListBuilder = null,
-        onListSelectionComplete = null;
+        onListSelectionComplete = null,
+        applyButtonBuilder = null;
 
   CustomDropdown.multiSelect({
     super.key,
@@ -334,6 +344,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.disabledDecoration,
     this.canOpenOverlayTopSide = true,
     this.onListSelectionComplete,
+    this.withApplyButton = false,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -360,7 +371,8 @@ class CustomDropdown<T> extends StatefulWidget {
         searchRequestLoadingIndicator = null,
         closeDropDownOnClearFilterSearch = false,
         autofocusOnSearchField = false,
-        onItemSelectionComplete = null;
+        onItemSelectionComplete = null,
+        applyButtonBuilder = null;
 
   CustomDropdown.multiSelectSearch({
     super.key,
@@ -391,6 +403,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
     this.onListSelectionComplete,
+    this.withApplyButton = false,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -412,7 +425,8 @@ class CustomDropdown<T> extends StatefulWidget {
         futureRequest = null,
         futureRequestDelay = null,
         searchRequestLoadingIndicator = null,
-        onItemSelectionComplete = null;
+        onItemSelectionComplete = null,
+        applyButtonBuilder = null;
 
   const CustomDropdown.multiSelectSearchRequest({
     super.key,
@@ -446,6 +460,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
     this.onListSelectionComplete,
+    this.withApplyButton = false,
   })  : _searchType = _SearchType.onRequestData,
         _dropdownType = _DropdownType.multipleSelect,
         initialItem = null,
@@ -453,7 +468,8 @@ class CustomDropdown<T> extends StatefulWidget {
         headerBuilder = null,
         excludeSelected = false,
         validator = null,
-        onItemSelectionComplete = null;
+        onItemSelectionComplete = null,
+        applyButtonBuilder = null;
 
   @override
   State<CustomDropdown<T>> createState() => _CustomDropdownState<T>();
@@ -474,12 +490,15 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
   List<T> _processHeaders() {
     final res = widget.initialItems ?? [];
     final allItems = widget.items ?? [];
-    if (res.isEmpty || !res.every((e) => e is CustomDropdownGroupable<T>) ) return res;
+    if (res.isEmpty || !res.every((e) => e is CustomDropdownGroupable<T>)) {
+      return res;
+    }
     final resWithGroups = <T>[];
     final groups = <CustomDropdownGroupable<T>>[];
-    for (final e in res ) {
+    for (final e in res) {
       // proceed elements
-      if ((e as CustomDropdownGroupable<T>).children.isEmpty && allItems.contains(e)){
+      if ((e as CustomDropdownGroupable<T>).children.isEmpty &&
+          allItems.contains(e)) {
         resWithGroups.add(e);
         CustomDropdownGroupable<T>? group;
         for (final el in allItems) {
@@ -593,10 +612,14 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                   layerLink: layerLink,
                   hideOverlay: () {
                     hideCallback();
+                    if (!widget.withApplyButton) {
+                      widget.onListSelectionComplete?.call(
+                        selectedItemsNotifier.value,
+                      );
+                    }
+
                     widget.onItemSelectionComplete
                         ?.call(selectedItemNotifier.value);
-                    widget.onListSelectionComplete
-                        ?.call(selectedItemsNotifier.value);
                   },
                   hintStyle: decoration?.hintStyle,
                   headerStyle: decoration?.headerStyle,
@@ -628,6 +651,23 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                       widget.closeDropDownOnClearFilterSearch,
                   autofocusOnSearchField: widget.autofocusOnSearchField,
                   canOpenOverlayTopSide: widget.canOpenOverlayTopSide,
+                  withApplyButton: widget.withApplyButton,
+                  applyButtonBuilder: (context, callback) {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              callback();
+                              widget.onListSelectionComplete
+                                  ?.call(selectedItemsNotifier.value);
+                            },
+                            child: const Text('Apply'),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 );
               },
               child: (showCallback) {
@@ -636,9 +676,7 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                   child: _DropDownField<T>(
                     onTap: showCallback,
                     selectedItemNotifier: selectedItemNotifier,
-                    resetSelection: () {
-                      selectedItemsNotifier.value = [];
-                    },
+                    resetSelection: () => selectedItemsNotifier.value = [],
                     border: formFieldState.hasError
                         ? (decoration?.closedErrorBorder ?? _defaultErrorBorder)
                         : decoration?.closedBorder,

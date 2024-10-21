@@ -42,6 +42,8 @@ class _DropdownOverlay<T> extends StatefulWidget {
   final bool autofocusOnSearchField;
   final bool canOpenOverlayTopSide;
   final VoidCallback resetSelection;
+  final bool withApplyButton;
+  final _ApplyButtonBuilder? applyButtonBuilder;
 
   const _DropdownOverlay({
     Key? key,
@@ -81,8 +83,10 @@ class _DropdownOverlay<T> extends StatefulWidget {
     required this.enabled,
     required this.closeDropDownOnClearFilterSearch,
     required this.resetSelection,
+    required this.applyButtonBuilder,
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
+    this.withApplyButton = false,
   });
 
   @override
@@ -100,10 +104,11 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
   final scrollController = ScrollController();
 
   void resetSelection() {
-    selectedItem = null;
-    selectedItems = [];
-    widget.resetSelection();
-    setState(() {});
+    setState(() {
+      selectedItem = null;
+      selectedItems = [];
+      widget.resetSelection();
+    });
   }
 
   Widget hintBuilder(BuildContext context) {
@@ -126,10 +131,26 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
             items: selectedItems, resetSelection: resetSelection);
   }
 
+  Widget applyButtonBuilder(BuildContext context) {
+    return widget.applyButtonBuilder != null
+        ? widget.applyButtonBuilder!(context, widget.hideOverlay)
+        : defaultApplyButtonBuilder(context, widget.hideOverlay);
+  }
+
   Widget noResultFoundBuilder(BuildContext context) {
     return widget.noResultFoundBuilder != null
         ? widget.noResultFoundBuilder!(context, widget.noResultFoundText)
         : defaultNoResultFoundBuilder(context, widget.noResultFoundText);
+  }
+
+  Widget defaultApplyButtonBuilder(
+    BuildContext context,
+    VoidCallback onPressed,
+  ) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      child: const Text('Apply'),
+    );
   }
 
   Widget defaultListItemBuilder(
@@ -329,13 +350,15 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
         setState(() {});
         return;
       }
-      // We got groupable items without group
-      if (selectedItems.contains(value)) {
-        selectedItems.remove(value);
-      } else {
-        selectedItems.add(value);
-      }
-      setState(() {});
+
+      setState(() {
+        // We got groupable items without group
+        if (selectedItems.contains(value)) {
+          selectedItems.remove(value);
+        } else {
+          selectedItems.add(value);
+        }
+      });
       return;
     }
     // We got non-groupable items
@@ -439,12 +462,12 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
                               scrollbarTheme: decoration
                                       ?.overlayScrollbarDecoration ??
                                   ScrollbarThemeData(
-                                    thumbVisibility: MaterialStateProperty.all(
+                                    thumbVisibility: WidgetStateProperty.all(
                                       true,
                                     ),
-                                    thickness: MaterialStateProperty.all(5),
+                                    thickness: WidgetStateProperty.all(5),
                                     radius: const Radius.circular(4),
-                                    thumbColor: MaterialStateProperty.all(
+                                    thumbColor: WidgetStateProperty.all(
                                       Colors.grey[300],
                                     ),
                                   ),
@@ -641,7 +664,11 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
                                 else
                                   items.length > 4
                                       ? Expanded(child: list)
-                                      : list
+                                      : list,
+                                if (widget.withApplyButton &&
+                                    selectedItems.isNotEmpty) ...[
+                                  applyButtonBuilder(context),
+                                ],
                               ],
                             ),
                           ),

@@ -26,3 +26,7 @@ typedef _NoResultFoundBuilder = Widget Function(
   BuildContext context,
   String text,
 );
+typedef _ApplyButtonBuilder = Widget Function(
+  BuildContext context,
+  VoidCallback onPressed,
+);
