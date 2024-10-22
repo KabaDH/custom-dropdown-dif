@@ -8,7 +8,7 @@ const _defaultOverlayIconDown = Icon(
 
 class _DropDownField<T> extends StatefulWidget {
   final VoidCallback onTap;
-  final ValueNotifier<T?> selectedItemNotifier;
+  final T? selectedItem;
   final String hintText;
   final Color? fillColor;
   final BoxBorder? border;
@@ -24,17 +24,17 @@ class _DropDownField<T> extends StatefulWidget {
   final _HeaderListBuilder<T>? headerListBuilder;
   final _HintBuilder? hintBuilder;
   final _DropdownType dropdownType;
-  final _ValueNotifierList<T> selectedItemsNotifier;
+  final List<T> selectedItems;
   final bool enabled;
   final VoidCallback resetSelection;
 
   const _DropDownField({
     super.key,
     required this.onTap,
-    required this.selectedItemNotifier,
+    required this.selectedItem,
     required this.maxLines,
     required this.dropdownType,
-    required this.selectedItemsNotifier,
+    required this.selectedItems,
     required this.resetSelection,
     this.hintText = 'Select value',
     this.fillColor,
@@ -65,15 +65,16 @@ class _DropDownFieldState<T> extends State<_DropDownField<T>> {
   @override
   void initState() {
     super.initState();
-    selectedItem = widget.selectedItemNotifier.value;
-    selectedItems = widget.selectedItemsNotifier.value;
+    selectedItem = widget.selectedItem;
+    selectedItems = widget.selectedItems;
   }
 
   void resetSelection() {
-    widget.resetSelection();
-    selectedItem = null;
-    selectedItems = [];
-    setState(() {});
+    setState(() {
+      widget.resetSelection();
+      selectedItem = null;
+      selectedItems = [];
+    });
   }
 
   Widget hintBuilder(BuildContext context) {
@@ -96,8 +97,11 @@ class _DropDownFieldState<T> extends State<_DropDownField<T>> {
             itemList: selectedItems, resetSelection: resetSelection);
   }
 
-  Widget defaultHeaderBuilder(
-      {T? oneItem, List<T>? itemList, VoidCallback? resetSelection}) {
+  Widget defaultHeaderBuilder({
+    T? oneItem,
+    List<T>? itemList,
+    VoidCallback? resetSelection,
+  }) {
     return Row(
       children: [
         Expanded(
@@ -142,9 +146,9 @@ class _DropDownFieldState<T> extends State<_DropDownField<T>> {
     super.didUpdateWidget(oldWidget);
     switch (widget.dropdownType) {
       case _DropdownType.singleSelect:
-        selectedItem = widget.selectedItemNotifier.value;
+        selectedItem = widget.selectedItem;
       case _DropdownType.multipleSelect:
-        selectedItems = widget.selectedItemsNotifier.value;
+        selectedItems = widget.selectedItems;
     }
   }
 

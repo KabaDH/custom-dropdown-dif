@@ -14,8 +14,8 @@ const _defaultListItemPadding =
 
 class _DropdownOverlay<T> extends StatefulWidget {
   final List<T> items;
-  final ValueNotifier<T?> selectedItemNotifier;
-  final _ValueNotifierList<T> selectedItemsNotifier;
+  final T? selectedItem;
+  final List<T> selectedItems;
   final Function(T) onItemSelect;
   final Size size;
   final LayerLink layerLink;
@@ -43,7 +43,7 @@ class _DropdownOverlay<T> extends StatefulWidget {
   final bool canOpenOverlayTopSide;
   final VoidCallback resetSelection;
   final bool withApplyButton;
-  final _ApplyButtonBuilder? applyButtonBuilder;
+  final _ApplyButtonBuilder<T>? applyButtonBuilder;
 
   const _DropdownOverlay({
     Key? key,
@@ -53,8 +53,8 @@ class _DropdownOverlay<T> extends StatefulWidget {
     required this.hideOverlay,
     required this.hintText,
     required this.searchHintText,
-    required this.selectedItemNotifier,
-    required this.selectedItemsNotifier,
+    required this.selectedItem,
+    required this.selectedItems,
     required this.excludeSelected,
     required this.onItemSelect,
     required this.noResultFoundText,
@@ -126,14 +126,21 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
   Widget headerListBuilder(BuildContext context) {
     return widget.headerListBuilder != null
         ? widget.headerListBuilder!(
-            context, selectedItems, widget.enabled, resetSelection)
-        : defaultHeaderBuilder(context,
-            items: selectedItems, resetSelection: resetSelection);
+            context,
+            selectedItems,
+            widget.enabled,
+            resetSelection,
+          )
+        : defaultHeaderBuilder(
+            context,
+            items: selectedItems,
+            resetSelection: resetSelection,
+          );
   }
 
   Widget applyButtonBuilder(BuildContext context) {
     return widget.applyButtonBuilder != null
-        ? widget.applyButtonBuilder!(context, widget.hideOverlay)
+        ? widget.applyButtonBuilder!(context, widget.hideOverlay, selectedItems)
         : defaultApplyButtonBuilder(context, widget.hideOverlay);
   }
 
@@ -269,13 +276,14 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
       double y = render1.localToGlobal(Offset.zero).dy;
       if (screenHeight - y < render2.size.height &&
           widget.canOpenOverlayTopSide) {
-        displayOverlayBottom = false;
-        setState(() {});
+        setState(() {
+          displayOverlayBottom = false;
+        });
       }
     });
 
-    selectedItem = widget.selectedItemNotifier.value;
-    selectedItems = widget.selectedItemsNotifier.value;
+    selectedItem = widget.selectedItem;
+    selectedItems = widget.selectedItems;
 
     if (widget.excludeSelected &&
         widget.items.length > 1 &&
@@ -665,8 +673,7 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
                                   items.length > 4
                                       ? Expanded(child: list)
                                       : list,
-                                if (widget.withApplyButton &&
-                                    selectedItems.isNotEmpty) ...[
+                                if (widget.withApplyButton) ...[
                                   applyButtonBuilder(context),
                                 ],
                               ],

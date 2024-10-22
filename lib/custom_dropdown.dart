@@ -12,7 +12,6 @@ part 'models/custom_dropdown_decoration.dart';
 part 'models/custom_dropdown_list_filter.dart';
 part 'models/list_item_decoration.dart';
 part 'models/search_field_decoration.dart';
-part 'models/value_notifier_list.dart';
 // utils
 part 'utils/signatures.dart';
 // widgets
@@ -345,6 +344,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.canOpenOverlayTopSide = true,
     this.onListSelectionComplete,
     this.withApplyButton = false,
+    this.applyButtonBuilder,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -371,8 +371,7 @@ class CustomDropdown<T> extends StatefulWidget {
         searchRequestLoadingIndicator = null,
         closeDropDownOnClearFilterSearch = false,
         autofocusOnSearchField = false,
-        onItemSelectionComplete = null,
-        applyButtonBuilder = null;
+        onItemSelectionComplete = null;
 
   CustomDropdown.multiSelectSearch({
     super.key,
@@ -404,6 +403,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.canOpenOverlayTopSide = true,
     this.onListSelectionComplete,
     this.withApplyButton = false,
+    this.applyButtonBuilder,
   })  : assert(
           items!.isNotEmpty || !enabled,
           'Items list must contain at least one item.',
@@ -425,8 +425,7 @@ class CustomDropdown<T> extends StatefulWidget {
         futureRequest = null,
         futureRequestDelay = null,
         searchRequestLoadingIndicator = null,
-        onItemSelectionComplete = null,
-        applyButtonBuilder = null;
+        onItemSelectionComplete = null;
 
   const CustomDropdown.multiSelectSearchRequest({
     super.key,
@@ -461,6 +460,7 @@ class CustomDropdown<T> extends StatefulWidget {
     this.canOpenOverlayTopSide = true,
     this.onListSelectionComplete,
     this.withApplyButton = false,
+    this.applyButtonBuilder,
   })  : _searchType = _SearchType.onRequestData,
         _dropdownType = _DropdownType.multipleSelect,
         initialItem = null,
@@ -468,8 +468,7 @@ class CustomDropdown<T> extends StatefulWidget {
         headerBuilder = null,
         excludeSelected = false,
         validator = null,
-        onItemSelectionComplete = null,
-        applyButtonBuilder = null;
+        onItemSelectionComplete = null;
 
   @override
   State<CustomDropdown<T>> createState() => _CustomDropdownState<T>();
@@ -478,13 +477,13 @@ class CustomDropdown<T> extends StatefulWidget {
 class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
   final layerLink = LayerLink();
   late ValueNotifier<T?> selectedItemNotifier;
-  late _ValueNotifierList<T> selectedItemsNotifier;
+  late ValueNotifier<List<T>> selectedItemsNotifier;
 
   @override
   void initState() {
     super.initState();
     selectedItemNotifier = ValueNotifier(widget.initialItem);
-    selectedItemsNotifier = _ValueNotifierList(_processHeaders());
+    selectedItemsNotifier = ValueNotifier<List<T>>(_processHeaders());
   }
 
   List<T> _processHeaders() {
@@ -588,9 +587,11 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                         } else {
                           currentVal.add(value);
                         }
-                        selectedItemsNotifier.value = currentVal;
-                        widget.onListChanged?.call(currentVal);
-                        formFieldState.didChange((null, currentVal));
+                        if (!widget.withApplyButton) {
+                          selectedItemsNotifier.value = currentVal;
+                          widget.onListChanged?.call(currentVal);
+                          formFieldState.didChange((null, currentVal));
+                        }
                     }
                     if (widget.validateOnChange) {
                       formFieldState.validate();
@@ -605,19 +606,17 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                       widget.noResultFoundText ?? 'No result found.',
                   noResultFoundBuilder: widget.noResultFoundBuilder,
                   items: widget.items ?? [],
-                  selectedItemNotifier: selectedItemNotifier,
-                  selectedItemsNotifier: selectedItemsNotifier,
+                  selectedItem: selectedItemNotifier.value,
+                  selectedItems: selectedItemsNotifier.value.toList(),
                   size: size,
                   listItemBuilder: widget.listItemBuilder,
                   layerLink: layerLink,
                   hideOverlay: () {
                     hideCallback();
                     if (!widget.withApplyButton) {
-                      widget.onListSelectionComplete?.call(
-                        selectedItemsNotifier.value,
-                      );
+                      widget.onListSelectionComplete
+                          ?.call(selectedItemsNotifier.value);
                     }
-
                     widget.onItemSelectionComplete
                         ?.call(selectedItemNotifier.value);
                   },
@@ -652,15 +651,22 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                   autofocusOnSearchField: widget.autofocusOnSearchField,
                   canOpenOverlayTopSide: widget.canOpenOverlayTopSide,
                   withApplyButton: widget.withApplyButton,
-                  applyButtonBuilder: (context, callback) {
+                  applyButtonBuilder: (_, callback, selectedItems) {
                     return Row(
                       children: [
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              callback();
-                              widget.onListSelectionComplete
-                                  ?.call(selectedItemsNotifier.value);
+                              setState(() {
+                                selectedItemsNotifier.value = selectedItems;
+                                widget.onListChanged?.call(selectedItems);
+                                formFieldState.didChange((null, selectedItems));
+                                formFieldState.validate();
+
+                                widget.onListSelectionComplete
+                                    ?.call(selectedItemsNotifier.value);
+                                callback();
+                              });
                             },
                             child: const Text('Apply'),
                           ),
@@ -675,7 +681,8 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                   link: layerLink,
                   child: _DropDownField<T>(
                     onTap: showCallback,
-                    selectedItemNotifier: selectedItemNotifier,
+                    selectedItem: selectedItemNotifier.value,
+                    selectedItems: selectedItemsNotifier.value.toList(),
                     resetSelection: () => selectedItemsNotifier.value = [],
                     border: formFieldState.hasError
                         ? (decoration?.closedErrorBorder ?? _defaultErrorBorder)
@@ -695,7 +702,6 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                     maxLines: widget.maxlines,
                     headerPadding: widget.closedHeaderPadding,
                     dropdownType: widget._dropdownType,
-                    selectedItemsNotifier: selectedItemsNotifier,
                     enabled: widget.enabled,
                   ),
                 );
