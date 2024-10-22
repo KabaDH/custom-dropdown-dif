@@ -44,6 +44,7 @@ class _DropdownOverlay<T> extends StatefulWidget {
   final VoidCallback resetSelection;
   final bool withApplyButton;
   final _ApplyButtonBuilder<T>? applyButtonBuilder;
+  final void Function(List<T> selected) onApplyPressed;
 
   const _DropdownOverlay({
     Key? key,
@@ -84,6 +85,7 @@ class _DropdownOverlay<T> extends StatefulWidget {
     required this.closeDropDownOnClearFilterSearch,
     required this.resetSelection,
     required this.applyButtonBuilder,
+    required this.onApplyPressed,
     this.autofocusOnSearchField = false,
     this.canOpenOverlayTopSide = true,
     this.withApplyButton = false,
@@ -138,10 +140,16 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
           );
   }
 
-  Widget applyButtonBuilder(BuildContext context) {
+  Widget applyButtonBuilder(BuildContext context, VoidCallback? onPressed) {
     return widget.applyButtonBuilder != null
-        ? widget.applyButtonBuilder!(context, widget.hideOverlay, selectedItems)
-        : defaultApplyButtonBuilder(context, widget.hideOverlay);
+        ? widget.applyButtonBuilder!(context, () {
+            widget.hideOverlay();
+            widget.onApplyPressed(selectedItems);
+          })
+        : defaultApplyButtonBuilder(() {
+            widget.hideOverlay();
+            widget.onApplyPressed(selectedItems);
+          });
   }
 
   Widget noResultFoundBuilder(BuildContext context) {
@@ -151,12 +159,17 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
   }
 
   Widget defaultApplyButtonBuilder(
-    BuildContext context,
     VoidCallback onPressed,
   ) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      child: const Text('Apply'),
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: onPressed,
+            child: const Text('Apply'),
+          ),
+        ),
+      ],
     );
   }
 
@@ -674,7 +687,10 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>> {
                                       ? Expanded(child: list)
                                       : list,
                                 if (widget.withApplyButton) ...[
-                                  applyButtonBuilder(context),
+                                  applyButtonBuilder(context, () {
+                                    widget.hideOverlay();
+                                    widget.onApplyPressed(selectedItems);
+                                  }),
                                 ],
                               ],
                             ),

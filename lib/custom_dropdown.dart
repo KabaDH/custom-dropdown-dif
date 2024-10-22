@@ -651,28 +651,17 @@ class _CustomDropdownState<T> extends State<CustomDropdown<T>> {
                   autofocusOnSearchField: widget.autofocusOnSearchField,
                   canOpenOverlayTopSide: widget.canOpenOverlayTopSide,
                   withApplyButton: widget.withApplyButton,
-                  applyButtonBuilder: (_, callback, selectedItems) {
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                selectedItemsNotifier.value = selectedItems;
-                                widget.onListChanged?.call(selectedItems);
-                                formFieldState.didChange((null, selectedItems));
-                                formFieldState.validate();
+                  applyButtonBuilder: widget.applyButtonBuilder,
+                  onApplyPressed: (selectedItems) {
+                    setState(() {
+                      selectedItemsNotifier.value = selectedItems;
+                      widget.onListChanged?.call(selectedItems);
+                      formFieldState.didChange((null, selectedItems));
+                      formFieldState.validate();
 
-                                widget.onListSelectionComplete
-                                    ?.call(selectedItemsNotifier.value);
-                                callback();
-                              });
-                            },
-                            child: const Text('Apply'),
-                          ),
-                        ),
-                      ],
-                    );
+                      widget.onListSelectionComplete
+                          ?.call(selectedItemsNotifier.value);
+                    });
                   },
                 );
               },

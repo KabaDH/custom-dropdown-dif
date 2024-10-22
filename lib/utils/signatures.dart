@@ -29,5 +29,4 @@ typedef _NoResultFoundBuilder = Widget Function(
 typedef _ApplyButtonBuilder<T> = Widget Function(
   BuildContext context,
   VoidCallback onPressed,
-  List<T> selectedItems,
 );
