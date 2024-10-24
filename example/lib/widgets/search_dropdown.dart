@@ -35,6 +35,7 @@ class MultiSelectSearchDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomDropdown<String>.multiSelectSearch(
       hintText: 'Select cuisines',
+      withApplyButton: true,
       items: _list,
       onListChanged: (value) {
         log('MultiSelectSearchDropdown onChanged value: $value');

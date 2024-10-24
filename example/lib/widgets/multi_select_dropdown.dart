@@ -32,6 +32,7 @@ class MultiSelectGroupedDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomDropdown<GeoElement>.multiSelect(
       items: groupedCities,
+      withApplyButton: true,
       onListChanged: (value) {
         log('MultiSelectGroupedDropdown onChanged value: $value');
       },
@@ -54,6 +55,7 @@ class MultiSelectGroupedDropdownSearch extends StatelessWidget {
     return CustomDropdown<GeoElement>.multiSelectSearch(
       items: groupedCities,
       autofocusOnSearchField: true,
+      withApplyButton: true,
       onListChanged: (value) {
         log('MultiSelectGroupedDropdownSearch onChanged value: $value');
       },
